@@ -1,0 +1,55 @@
+﻿<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Scratcher Game</title>
+    <link rel="stylesheet" href="style.css">
+</head>
+<body>
+    <h1>🎰 Ultimate 9-Tile Scratcher Deluxe</h1>
+
+
+    <div id="loginContainer">
+        <h2>Login / Create User</h2>
+        <input id="newUserName" placeholder="Enter name">
+        <button onclick="createUser()">Create</button>
+        <div id="userList"></div>
+    </div>
+
+
+    <div id="mainUI" class="hidden">
+        <p id="tokens">Tokens: 0</p>
+        <p id="brushType">Brush: <span id="brushName"></span></p>
+        <p id="dailyReward"></p>
+
+
+        <button id="playBtn">Play (Cost: 1 Token)</button>
+        <button onclick="openShop()">Shop</button>
+        <button onclick="logout()">Logout</button>
+
+
+        <div id="grid"></div>
+        <p id="result"></p>
+    </div>
+
+
+    <div id="shopContainer" class="hidden">
+        <h2>🛒 Shop</h2>
+        <div class="shop-item">
+            <b>+10 Tokens — FREE (Every 24 Hours)</b><br>
+            <button id="claimBtn" onclick="buyTokens()">Claim</button>
+            <p id="claimStatus"></p>
+        </div>
+        <div class="shop-item">
+            <b>Brushes</b><br>
+            <button onclick="buyBrush('circle')">Circle</button>
+            <button onclick="buyBrush('square')">Square</button>
+            <button onclick="buyBrush('star')">Star</button>
+        </div>
+        <button onclick="closeShop()">Close</button>
+    </div>
+
+
+    <script src="script.js"></script>
+</body>
+</html>
