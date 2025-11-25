@@ -9,7 +9,7 @@ let lastClaim = 0;
 const symbols = ["🍒","⭐","🔔","🍋","💎"];
 
 /* UTILS */
-function saveUsers(){ localStorage.setItem("scratcherUsers",JSON.stringify(users)); }
+function saveUsers(){ localStorage.setItem("scratcherUsers", JSON.stringify(users)); }
 function updateUI(){
     document.getElementById("tokenCount").textContent = tokens;
     document.getElementById("brushName").textContent = brush;
@@ -19,7 +19,8 @@ function updateUI(){
 /* LOGIN */
 function loadUserList(){
     const list = document.getElementById("userList");
-    list.innerHTML="<h3>Existing Users:</h3>";
+    list.innerHTML = "<h3>Existing Users:</h3>";
+
     Object.keys(users).forEach(username => {
         const btn = document.createElement("button");
         btn.textContent = username;
@@ -33,7 +34,14 @@ function createUser(){
     let name = document.getElementById("newUserName").value.trim();
     if(!name) return alert("Enter name");
     if(users[name]) return alert("User exists");
-    users[name] = { tokens: 10, brush: "circle", lastReward: 0, lastClaim: 0 };
+
+    users[name] = {
+        tokens: 10,
+        brush: "circle",
+        lastReward: 0,
+        lastClaim: 0
+    };
+
     saveUsers();
     loadUserList();
 }
@@ -60,6 +68,7 @@ function logout(){
 /* DAILY REWARD */
 function dailyRewardCheck(){
     const today = Math.floor(Date.now()/(1000*60*60*24));
+
     if(users[currentUser].lastReward !== today){
         tokens += 5;
         users[currentUser].lastReward = today;
@@ -90,7 +99,7 @@ function updateClaimStatus(){
         document.getElementById("claimStatus").textContent = "Available now!";
     } else {
         document.getElementById("claimBtn").disabled = true;
-        let hours = Math.ceil((oneDay - (now - lastClaim))/(1000*60*60));
+        let hours = Math.ceil((oneDay - (now - lastClaim)) / (1000*60*60));
         document.getElementById("claimStatus").textContent = "Come back in " + hours + " hours";
     }
 }
@@ -98,10 +107,13 @@ function updateClaimStatus(){
 function buyTokens(){
     const now = Date.now();
     if(now - lastClaim < 24*60*60*1000) return;
+
     tokens += 10;
     lastClaim = now;
+
     users[currentUser].tokens = tokens;
     users[currentUser].lastClaim = now;
+
     saveUsers();
     updateUI();
 }
@@ -117,7 +129,7 @@ function buyBrush(type){
 let revealed = 0;
 let revealedSymbols = [];
 
-document.getElementById("playBtn").addEventListener("click",()=>{
+document.getElementById("playBtn").addEventListener("click", () => {
     if(tokens <= 0) return alert("Not enough tokens");
     tokens--;
     users[currentUser].tokens = tokens;
@@ -125,3 +137,87 @@ document.getElementById("playBtn").addEventListener("click",()=>{
     updateUI();
     startGame();
 });
+
+function startGame(){
+    revealed = 0;
+    revealedSymbols = [];
+
+    document.getElementById("result").style.opacity = 0;
+
+    const grid = document.getElementById("grid");
+    grid.innerHTML = "";
+
+    const tileSymbols = Array.from({ length: 9 }, () =>
+        symbols[Math.floor(Math.random()*symbols.length)]
+    );
+
+    tileSymbols.forEach(sym => {
+        let tile = document.createElement("div");
+        tile.className = "tile";
+        tile.dataset.symbol = sym;
+        tile.onclick = () => revealTile(tile);
+        grid.appendChild(tile);
+    });
+}
+
+function revealTile(tile){
+    if(tile.classList.contains("revealed")) return;
+    if(revealed >= 3) return;
+
+    tile.classList.add("revealed");
+    tile.textContent = tile.dataset.symbol;
+
+    revealed++;
+    revealedSymbols.push(tile.dataset.symbol);
+
+    if(revealed === 3) evaluateResult();
+}
+
+function evaluateResult(){
+    const [a,b,c] = revealedSymbols;
+    const win = (a === b && b === c);
+
+    const result = document.getElementById("result");
+
+    if(win){
+        tokens += 20;
+        users[currentUser].tokens = tokens;
+        saveUsers();
+        updateUI();
+        result.textContent = "🎉 MATCH 3! +20 Tokens!";
+        launchConfetti();
+    } else {
+        result.textContent = "❌ No Match!";
+        revealAllTiles();
+    }
+
+    result.style.opacity = 1;
+}
+
+function revealAllTiles(){
+    const tiles = document.querySelectorAll(".tile");
+    tiles.forEach(tile => {
+        if(!tile.classList.contains("revealed")){
+            tile.classList.add("revealed");
+            tile.textContent = tile.dataset.symbol;
+        }
+    });
+}
+
+/* CONFETTI */
+function launchConfetti(){
+    for(let i = 0; i < 60; i++){
+        let c = document.createElement("div");
+        c.className = "confetti";
+        c.style.left = Math.random()*100 + "vw";
+        c.style.background = randomColor();
+        c.style.animationDuration = (2 + Math.random()*3) + "s";
+        document.body.appendChild(c);
+        setTimeout(()=>c.remove(), 5000);
+    }
+}
+
+function randomColor(){
+    const colors = ["#ff595e", "#ffca3a", "#8ac926", "#1982c4", "#6a4c93"];
+    return colors[Math.floor(Math.random()*colors.length)];
+}
